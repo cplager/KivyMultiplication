@@ -37,7 +37,6 @@ class MultiplicationPracticeApp(App):
         if instance.text == "end":
             self.summary()
             return 
-        print instance.text, "pressed"
         
         
     def summary(self):
@@ -51,7 +50,6 @@ class MultiplicationPracticeApp(App):
         
         
     def nextQuestion(self, other=None):
-        print "updating display"
         self.current = '0'
         self.updateDisplay()
         if self.qNum == self.numTot:
@@ -103,7 +101,10 @@ class MultiplicationPracticeApp(App):
 
 
     def updateDisplay(self):
-        print "update display", self.current, self.answer.text
+        current = self.current
+        if current == '0':
+            current = ''
+        self.answer.text = current
 
 
     def fullEntry(self, value):
@@ -128,18 +129,17 @@ class MultiplicationPracticeApp(App):
         # Control row
         row1   =  BoxLayout(orientation='horizontal')
         layout.add_widget(row1)
-
         row1.add_widget(Button(text="start", on_press=self.control))
         row1.add_widget(Button(text="end"  , on_press=self.control))
         row1.add_widget(Button(text="exit" , on_press=self.control))
+        # text
         row2   =  BoxLayout(orientation='horizontal')
         layout.add_widget(row2)
-
         # Question label
-        self.question = Label(text="Question",  markup=True)
+        self.question = Label(text="",  markup=True)
         row2.add_widget(self.question)
         # answer label
-        self.answer = Label(text="0", markup=True)
+        self.answer = Label(text="", markup=True)
         row2.add_widget(self.answer)
         # number rows
         lines = []
