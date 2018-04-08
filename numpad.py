@@ -23,6 +23,7 @@ class MultiplicationPracticeApp(App):
         self.current         = '0'
         self.maxNumDigits    = 2
         self.askingQuestion  = False
+        self.totSeconds      = 0.
 
         
     def control(self, instance):
@@ -32,7 +33,7 @@ class MultiplicationPracticeApp(App):
         if instance.text == "start":
             self.qNum = 0
             self.startTime = datetime.now()
-            self.nextQuestion()
+            self.almostNextQuestion()
             return
         if instance.text == "end":
             self.summary()
@@ -42,20 +43,30 @@ class MultiplicationPracticeApp(App):
     def summary(self):
         self.currentQuestion = ''
         total = (datetime.now() - self.startTime).total_seconds() / self.qNum
+        if not self.qNum:
+            self.question.text = "No questions asked"
+            return;
+        if self.qNum:
+            total = self.totSeconds / self.qNum
         pcnt  = 100. * self.numCorrect / self.qNum
         self.question.text = "Finished: %d / %d (%.1f%%) avg %.1f seconds each" \
               % (self.numCorrect, self.qNum, pcnt, total)
         self.numCorrect = 0
         self.qNum       = 0
+
+
+    def almostNextQuestion(self, other=None):
+        if self.qNum == self.numTot:
+            # summary
+            self.summary()
+            return
+        self.question.text = "Next question:"
+        Clock.schedule_once(self.nextQuestion, 1)
         
         
     def nextQuestion(self, other=None):
         self.current = '0'
         self.updateDisplay()
-        if self.qNum == self.numTot:
-            # summary
-            self.summary()
-            return
         first  = self.numbers[randrange(len(self.numbers))]
         second = randrange(2, 10)
         if randrange(2):
@@ -65,6 +76,7 @@ class MultiplicationPracticeApp(App):
         self.qNum           += 1
         self.question.text   = '%3d / %d: %s' % (self.qNum, self.numTot, self.currentQuestion)
         self.askingQuestion  = True
+        self.startTime = datetime.now()
         
         
     def number(self, instance):
@@ -110,6 +122,7 @@ class MultiplicationPracticeApp(App):
     def fullEntry(self, value):
         if not self.currentQuestion:
             return
+        self.totSeconds += (datetime.now() - self.startTime).total_seconds()
         if value == self.currentAnswer:
             # correct()
             text = '[color=00ff00]Correct! %s = %d[/color]' % \
@@ -120,7 +133,7 @@ class MultiplicationPracticeApp(App):
             text = '[color=ff0000]Wrong! %s = %d, not %d[/color]' % \
                     (self.currentQuestion, self.currentAnswer, value)
         self.question.text = text
-        Clock.schedule_once(self.nextQuestion, 5)
+        Clock.schedule_once(self.almostNextQuestion, 4)
 
         
     def build(self):
