@@ -3,6 +3,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout  import BoxLayout
 from kivy.uix.button     import Button
 from kivy.uix.label      import Label
+from kivy.clock          import Clock
 from kivy.app            import App
 from random              import randrange
 from datetime            import datetime
@@ -44,7 +45,9 @@ class MultiplicationPracticeApp(App):
         self.qNum = 0
         
         
-    def nextQuestion(self):
+    def nextQuestion(self, other=None):
+        if other:
+            print 'other %s' % other
         if self.qNum == self.numTot:
             # summary
             self.summary()
@@ -72,8 +75,8 @@ class MultiplicationPracticeApp(App):
             # wrong
             text = '[color=ff0000]Wrong! %s = %d, not %d[/color]' % \
                     (self.currentQuestion, self.currentAnswer, value)
-        self.answer.text = text
-        self.nextQuestion()
+        self.question.text = text
+        Clock.schedule_once(self.nextQuestion, 5)
 
         
     def build(self):
@@ -86,9 +89,15 @@ class MultiplicationPracticeApp(App):
         row1.add_widget(Button(text="start", on_press=self.control))
         row1.add_widget(Button(text="end"  , on_press=self.control))
         row1.add_widget(Button(text="exit" , on_press=self.control))
+        row2   =  BoxLayout(orientation='horizontal')
+        layout.add_widget(row2)
+
         # Question label
-        self.question = Label(text="Question", font_size='20sp')
-        layout.add_widget(self.question)
+        self.question = Label(text="Question",  markup=True)
+        row2.add_widget(self.question)
+        ## # answer label
+        ## self.answer = Label(text="answer", font_size='20sp', markup=True)
+        ## row2.add_widget(self.answer)
         # number rows
         for loop in range(1,101):
             if loop % 10 == 1:
@@ -96,9 +105,6 @@ class MultiplicationPracticeApp(App):
                 layout.add_widget(row)
             num = Button(text='%d' % loop, on_press=self.number,  background_color=[1,0,0,1])
             row.add_widget(num)
-        # answer label
-        self.answer = Label(text="answer", font_size='20sp', markup=True)
-        layout.add_widget(self.answer)
         return layout
 
 MultiplicationPracticeApp().run()
