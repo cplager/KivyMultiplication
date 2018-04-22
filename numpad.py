@@ -21,9 +21,10 @@ class MultiplicationPracticeApp(App):
         self.numbers         = range(3,10)
         self.numCorrect      = 0
         self.current         = '0'
-        self.maxNumDigits    = 2
+        self.maxNumDigits    = 3
         self.askingQuestion  = False
         self.totSeconds      = 0.
+        self.working         = True
 
         
     def control(self, instance):
@@ -31,24 +32,29 @@ class MultiplicationPracticeApp(App):
             App.get_running_app().stop()
             return
         if instance.text == "start":
-            self.qNum = 0
+            self.qNum      = 0
+            self.working   = True
             self.startTime = datetime.now()
             self.almostNextQuestion()
             return
         if instance.text == "end":
-            self.summary()
+            self.working = False
+            if not self.askingQuestion:
+                self.summary()
             return 
         
         
     def summary(self):
         self.currentQuestion = ''
-        total = (datetime.now() - self.startTime).total_seconds() / self.qNum
         if not self.qNum:
             self.question.text = "No questions asked"
             return;
         if self.qNum:
             total = self.totSeconds / self.qNum
-        pcnt  = 100. * self.numCorrect / self.qNum
+            pcnt  = 100. * self.numCorrect / self.qNum
+        else:
+            total = 0
+            pcnt  = 0
         self.question.text = "Finished: %d / %d (%.1f%%) avg %.1f seconds each" \
               % (self.numCorrect, self.qNum, pcnt, total)
         self.numCorrect = 0
@@ -56,7 +62,7 @@ class MultiplicationPracticeApp(App):
 
 
     def almostNextQuestion(self, other=None):
-        if self.qNum == self.numTot:
+        if self.qNum == self.numTot or not self.working:
             # summary
             self.summary()
             return
@@ -65,6 +71,9 @@ class MultiplicationPracticeApp(App):
         
         
     def nextQuestion(self, other=None):
+        if not self.working:
+            self.summary()
+            return
         self.current = '0'
         self.updateDisplay()
         first  = self.numbers[randrange(len(self.numbers))]
@@ -74,9 +83,9 @@ class MultiplicationPracticeApp(App):
         self.currentQuestion = '%d x %d' %(first, second)
         self.currentAnswer   = first * second
         self.qNum           += 1
-        self.question.text   = '%3d / %d: %s' % (self.qNum, self.numTot, self.currentQuestion)
+        self.question.text   = 'Question %3d of  %d: %s' % (self.qNum, self.numTot, self.currentQuestion)
         self.askingQuestion  = True
-        self.startTime = datetime.now()
+        self.startTime       = datetime.now()
         
         
     def number(self, instance):
@@ -89,7 +98,7 @@ class MultiplicationPracticeApp(App):
             self.askingQuestion = False
             return
         elif digitRE.search(value):
-            if len(self.current) > self.maxNumDigits:
+            if len(self.current) >= self.maxNumDigits:
                 # don't bother
                 return
             if value == '0' and self.current == '0':
